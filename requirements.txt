@@ -1,0 +1,2 @@
+-e git+https://github.com/binance/binance-connector-python.git#egg=binance-connector-python
+
