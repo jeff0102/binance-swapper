@@ -1,12 +1,35 @@
 import logging
 from binance.spot import Spot as Client
 from binance.lib.utils import config_logging
+from binance.error import ClientError as ClientErrorBinance
 from utils.prepare_env import get_api_key_binance
 import tkinter as tk
 
+config_logging(logging, logging.DEBUG)
+
+api_key, api_secret = get_api_key_binance()
+spot_client = Client(api_key, api_secret)
+
 def button1_function():
+    try:
+        available_assets = spot_client.funding_wallet()
+        print(available_assets)
+    except ClientErrorBinance as error:
+        logging.error(
+            "Error with the payment methods. status: {}, error code: {}, error message: {}".format(
+                error.status_code, error.error_code, error.error_message
+            )
+        )
+        return
+
+    assets = []
+    for asset in available_assets:
+        item = list(asset.items())[:2]
+        assets.extend(item)
+
+    result = f"assets: {assets}\n"
     text_result.delete("1.0", tk.END)
-    text_result.insert(tk.END, "assets show")
+    text_result.insert(tk.END, result)
 
 def button2_function():
     text_result.delete("1.0", tk.END)
@@ -48,11 +71,7 @@ window.geometry("500x600") # Adjust the size of the window to fit the square dis
 
 window.mainloop()
 """
-config_logging(logging, logging.DEBUG)
 
-api_key, api_secret = get_api_key_binance()
 
-spot_client = Client(api_key, api_secret)
-logging.info(
-#    spot_client.user_universal_transfer(asset="USDT", amount=1, type="FUNDING_MAIN")
-) """
+
+"""
