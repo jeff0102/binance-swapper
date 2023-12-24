@@ -1,4 +1,6 @@
 import logging
+import time
+
 from binance.spot import Spot as Client
 from binance.lib.utils import config_logging
 from binance.error import ClientError as ClientErrorBinance
@@ -13,7 +15,6 @@ spot_client = Client(api_key, api_secret)
 def button1_function():
     try:
         available_assets = spot_client.funding_wallet()
-        print(available_assets)
     except ClientErrorBinance as error:
         logging.error(
             "Error with the payment methods. status: {}, error code: {}, error message: {}".format(
@@ -27,17 +28,45 @@ def button1_function():
         item = list(asset.items())[:2]
         assets.extend(item)
 
-    result = f"assets: {assets}\n"
+    result = "assets:\n"
+    for asset in assets:
+        result += f"{asset[0]}: {asset[1]}\n"
+
     text_result.delete("1.0", tk.END)
     text_result.insert(tk.END, result)
 
+
 def button2_function():
+    try:
+        available_assets = spot_client.funding_wallet()
+        print(available_assets)
+    except ClientErrorBinance as error:
+        logging.error(
+            "Error with the payment methods. status: {}, error code: {}, error message: {}".format(
+                error.status_code, error.error_code, error.error_message
+            )
+        )
+        return
+
+    for asset in available_assets:
+        if asset["asset"] == "USDT":
+            continue
+        try:
+            spot_client.user_universal_transfer(asset=asset["asset"], amount=asset["free"], type="FUNDING_MAIN")
+        except ClientErrorBinance as error:
+            logging.error(
+                "Error with the payment methods. status: {}, error code: {}, error message: {}".format(
+                    error.status_code, error.error_code, error.error_message
+                )
+            )
+            continue
+
     text_result.delete("1.0", tk.END)
     text_result.insert(tk.END, "successful transfer to spot wallet")
 
 def button3_function():
     text_result.delete("1.0", tk.END)
-    text_result.insert(tk.END, "assets traded to USDT and sended to funding wallet")
+    text_result.insert(tk.END, "assets traded to USDT and send to funding wallet")
 
 def change_color_button(button):
     button.config(background="red")
@@ -70,8 +99,3 @@ text_result.pack(pady=10)
 window.geometry("500x600") # Adjust the size of the window to fit the square display and buttons
 
 window.mainloop()
-"""
-
-
-
-"""
