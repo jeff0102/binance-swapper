@@ -1,6 +1,4 @@
 import logging
-import time
-
 from binance.spot import Spot as Client
 from binance.lib.utils import config_logging
 from binance.error import ClientError as ClientErrorBinance
@@ -73,7 +71,7 @@ def change_color_button(button):
 
 # Initialize Tkinter Window
 window = tk.Tk()
-window.title("Tkinter GUI Example")
+window.title("swapper alpha 0.01")
 
 # Create the frame for the buttons
 button_frame = tk.Frame(window)
