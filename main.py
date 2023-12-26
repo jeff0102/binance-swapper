@@ -63,6 +63,39 @@ def button2_function():
     text_result.insert(tk.END, "successful transfer to spot wallet")
 
 def button3_function():
+    try:
+        spot_assets = spot_client.user_asset()
+    except ClientErrorBinance as error:
+        logging.error(
+            "Error with the payment methods. status: {}, error code: {}, error message: {}".format(
+                error.status_code, error.error_code, error.error_message
+            )
+        )
+        return
+
+    for asset in spot_assets:
+        if asset["asset"] not in current_whitelist:
+            continue
+        else:
+            symbol = asset["asset"] + "USDT"
+            params = {
+                "symbol": symbol,
+                "side": "SELL",
+                "type": "MARKET",
+                "quantity": asset["free"]
+            }
+            print(params)
+            try:
+                spot_client.new_order(**params)
+            except ClientErrorBinance as error:
+                logging.error(
+                    "Error with the payment methods. status: {}, error code: {}, error message: {}".format(
+                        error.status_code, error.error_code, error.error_message
+                    )
+                )
+                continue
+
+
     text_result.delete("1.0", tk.END)
     text_result.insert(tk.END, "assets traded to USDT and send to funding wallet")
 
