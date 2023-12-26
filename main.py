@@ -9,6 +9,7 @@ config_logging(logging, logging.DEBUG)
 
 api_key, api_secret = get_api_key_binance()
 spot_client = Client(api_key, api_secret)
+current_whitelist = []
 
 def button1_function():
     try:
@@ -49,6 +50,7 @@ def button2_function():
     for asset in available_assets:
         if asset["asset"] == "USDT":
             continue
+
         try:
             spot_client.user_universal_transfer(asset=asset["asset"], amount=asset["free"], type="FUNDING_MAIN")
         except ClientErrorBinance as error:
@@ -58,7 +60,8 @@ def button2_function():
                 )
             )
             continue
-
+        current_whitelist.append(asset["asset"])
+    print(current_whitelist)
     text_result.delete("1.0", tk.END)
     text_result.insert(tk.END, "successful transfer to spot wallet")
 
@@ -78,11 +81,33 @@ def button3_function():
             continue
         else:
             symbol = asset["asset"] + "USDT"
+            try:
+                trade_info = spot_client.exchange_info(symbols=[symbol])
+                filters = trade_info.get("filters", [])
+                for filt in filters:
+                    if filt.get("filterType") == "LOT_SIZE":
+                        print(filt)
+                        step_size = float(filt.get("stepSize"))
+                        print(filt.get("stepSize"))
+                        break
+            except ClientErrorBinance as error:
+                logging.error(
+                    "Error with the payment methods. status: {}, error code: {}, error message: {}".format(
+                        error.status_code, error.error_code, error.error_message
+                    )
+                )
+                continue
+            print(step_size)
+            quantity = asset["free"]
+            print(quantity)
+            if quantity % step_size != 0:
+                quantity = int(quantity / step_size) * step_size
+
             params = {
                 "symbol": symbol,
                 "side": "SELL",
                 "type": "MARKET",
-                "quantity": asset["free"]
+                "quantity": quantity,
             }
             print(params)
             try:
@@ -131,5 +156,3 @@ window.geometry("500x600") # Adjust the size of the window to fit the square dis
 
 window.mainloop()
 
-"""
-commit test"""
