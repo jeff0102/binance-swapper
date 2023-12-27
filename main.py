@@ -38,7 +38,6 @@ def button1_function():
 def button2_function():
     try:
         available_assets = spot_client.funding_wallet()
-        print(available_assets)
     except ClientErrorBinance as error:
         logging.error(
             "Error with the payment methods. status: {}, error code: {}, error message: {}".format(
@@ -61,7 +60,6 @@ def button2_function():
             )
             continue
         current_whitelist.append(asset["asset"])
-    print(current_whitelist)
     text_result.delete("1.0", tk.END)
     text_result.insert(tk.END, "successful transfer to spot wallet")
 
@@ -81,27 +79,34 @@ def button3_function():
             continue
         else:
             symbol = asset["asset"] + "USDT"
+            trade_info = None
+
             try:
                 trade_info = spot_client.exchange_info(symbols=[symbol])
-                filters = trade_info.get("filters", [])
-                for filt in filters:
-                    if filt.get("filterType") == "LOT_SIZE":
-                        print(filt)
-                        step_size = float(filt.get("stepSize"))
-                        print(filt.get("stepSize"))
-                        break
             except ClientErrorBinance as error:
                 logging.error(
                     "Error with the payment methods. status: {}, error code: {}, error message: {}".format(
                         error.status_code, error.error_code, error.error_message
                     )
                 )
+            if trade_info is None:
                 continue
-            print(step_size)
-            quantity = asset["free"]
-            print(quantity)
+
+            step_size = None
+
+            for symbol_data in trade_info.get('symbols', []):
+                filters = symbol_data.get("filters", [])
+                for filt in filters:
+                    if filt.get("filterType") == "LOT_SIZE":
+                        step_size = float(filt.get("stepSize"))
+                        break
+
+            if step_size is None:
+                continue
+            quantity = float(asset["free"])
             if quantity % step_size != 0:
-                quantity = int(quantity / step_size) * step_size
+                quantity = (quantity / step_size) * step_size
+                quantity = '{:.8f}'.format(quantity - quantity % step_size)
 
             params = {
                 "symbol": symbol,
@@ -109,7 +114,6 @@ def button3_function():
                 "type": "MARKET",
                 "quantity": quantity,
             }
-            print(params)
             try:
                 spot_client.new_order(**params)
             except ClientErrorBinance as error:
@@ -118,8 +122,6 @@ def button3_function():
                         error.status_code, error.error_code, error.error_message
                     )
                 )
-                continue
-
 
     text_result.delete("1.0", tk.END)
     text_result.insert(tk.END, "assets traded to USDT and send to funding wallet")
