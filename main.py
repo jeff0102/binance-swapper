@@ -1,4 +1,5 @@
 import logging
+import time
 from binance.spot import Spot as Client
 from binance.lib.utils import config_logging
 from binance.error import ClientError as ClientErrorBinance
@@ -64,6 +65,7 @@ def button2_function():
     text_result.insert(tk.END, "successful transfer to spot wallet")
 
 def button3_function():
+    amount = None
     try:
         spot_assets = spot_client.user_asset()
     except ClientErrorBinance as error:
@@ -123,8 +125,31 @@ def button3_function():
                     )
                 )
 
+    try:
+        spot_usdt = spot_client.user_asset(asset="USDT")
+    except ClientErrorBinance as error:
+        logging.error(
+            "Error with the payment methods. status: {}, error code: {}, error message: {}".format(
+                error.status_code, error.error_code, error.error_message
+            )
+        )
+        return
+
+    time.sleep(0.2)
+    amount = spot_usdt[0]['free']
+
+    try:
+        spot_client.user_universal_transfer(asset="USDT", amount=amount, type="MAIN_FUNDING")
+    except ClientErrorBinance as error:
+        logging.error(
+             "Error with the payment methods. status: {}, error code: {}, error message: {}".format(
+                    error.status_code, error.error_code, error.error_message
+            )
+        )
+        text_result.delete("1.0", tk.END)
+        text_result.insert(tk.END, "failed to transfer USDT to funding wallet")
     text_result.delete("1.0", tk.END)
-    text_result.insert(tk.END, "assets traded to USDT and send to funding wallet")
+    text_result.insert(tk.END, f"assets traded to USDT and sent to funding wallet\n Total amount:{amount}")
 
 def change_color_button(button):
     button.config(background="red")
@@ -154,7 +179,7 @@ button3.bind("<Button-1>", lambda event, button=button3: change_color_button(but
 text_result = tk.Text(window, height=20, width=50)  # Adjust the height and width to get a square shape
 text_result.pack(pady=10)
 
-window.geometry("500x600") # Adjust the size of the window to fit the square display and buttons
+window.geometry("500x600")
 
 window.mainloop()
 
