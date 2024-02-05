@@ -10,7 +10,7 @@ The target of this project is to provide users with a convenient way to manage t
 
 1. **Connection to Binance Account:** Users can connect their Binance account using their API key and secret.
 2. **Retrieve Available Assets:** The application retrieves a list of available assets from the funding wallet from Binance platform.
-3. **Execution of Trades:** The application executes trades to convert selected assets into USDT.
+3. **Execution of Trades:** The application executes trades to convert selected assets into USDT at MARKET price.
 4. **Transfer to Funding Wallet:** The converted USDT is then transferred to the user's funding wallet on Binance, where it can be used for further trading or withdrawn.
 
 By automating this process, Binance Swapper aims to provide users with a seamless experience for managing their assets and participating in P2P trading activities.
